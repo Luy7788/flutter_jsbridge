@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>es7</title>
+</head>
+
+<body>
+    <script type='text/javascript'>
+        function setupWebViewJavascriptBridge(callback) {
+            if (window.WebViewJavascriptBridge) { return callback(WebViewJavascriptBridge); }
+            if (window.WVJBCallbacks) { return window.WVJBCallbacks.push(callback); }
+            window.WVJBCallbacks = [callback];
+
+            //only take effect on iOS
+            let WVJBIframe = document.createElement('iframe');
+            WVJBIframe.style.display = 'none';
+            WVJBIframe.src = 'https://__bridge_loaded__';
+            document.documentElement.appendChild(WVJBIframe);
+            setTimeout(function () { document.documentElement.removeChild(WVJBIframe) }, 0)
+        }
+        setupWebViewJavascriptBridge(function (bridge) {
+            console.log('setupWebViewJavascriptBridge done');
+            async function defaultHandler(message) {
+                console.log('defaultHandler JS got a message', message);
+                return new Promise(resolve => {
+                    let data = {
+                        'Javascript Responds': 'defaultHandler Wee!'
+                    };
+                    console.log('defaultHandler JS responding with', data);
+                    setTimeout(() => resolve(data), 0);
+                });
+            }
+
+            bridge.init(defaultHandler);
+
+            async function JSEcho(data) {
+                console.log("JS Echo called with:", data);
+                return new Promise(resolve => setTimeout(() => resolve(data), 0));
+            }
+
+            bridge.registerHandler('JSEcho', JSEcho);
+        });
+
+        if (window.WebViewJavascriptBridge) {
+            console.log('WebViewJavascriptBridge done when body load');
+        } else {
+            document.addEventListener(
+                'WebViewJavascriptBridgeReady'
+                , function () {
+                    console.log('WebViewJavascriptBridge done after WebViewJavascriptBridgeReady');
+                    //here will take effect on both Android and iOS
+                    //init or registerHandler bellow
+                    // async function defaultHandler(message) {
+                    //     console.log('defaultHandler JS got a message', message);
+                    //     return new Promise(resolve => {
+                    //         let data = {
+                    //             'Javascript Responds': 'defaultHandler Wee!'
+                    //         };
+                    //         console.log('defaultHandler JS responding with', data);
+                    //         setTimeout(() => resolve(data), 0);
+                    //     });
+                    // }
+
+                    // WebViewJavascriptBridge.init(defaultHandler);
+
+                    // async function JSEcho(data) {
+                    //     console.log("JS Echo called with:", data);
+                    //     return new Promise(resolve => setTimeout(() => resolve(data), 0));
+                    // }
+
+                    // WebViewJavascriptBridge.registerHandler('JSEcho', JSEcho);
+                },
+                false
+            );
+        }
+
+        async function sendHello() {
+            let responseData = await window.WebViewJavascriptBridge.send('hello');
+            console.log("repsonseData from java, data = ", responseData);
+        }
+
+        async function callHandler() {
+            let responseData = await window.WebViewJavascriptBridge.callHandler('NativeEcho', { 'key': 'value' });
+            console.log("JS received response:", responseData);
+        }
+    </script>
+
+    <div style="font-size: 48px;">
+        <button onclick="sendHello()" style="font-size: 48px;">sendHello</button>
+        <button onclick="callHandler()" style="font-size: 48px;">callHandler</button>
+    </div>
+
+</body>
+
+</html>

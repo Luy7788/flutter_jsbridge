@@ -1,12 +1,10 @@
 # webview_jsbridge
 
-[中文文档](https://github.com/KouYiGuo/webview_jsbridge/blob/main/doc/README.zh_CN.md)
+一款与 Flutter 官方 [webview_flutter](https://github.com/flutter/plugins/tree/master/packages/webview_flutter/webview_flutter) 插件兼容的 jsbridge 插件，没有 native 依赖。
 
-A flutter jsbridge package compatible with [webview_flutter](https://github.com/flutter/plugins/tree/master/packages/webview_flutter/webview_flutter), no native dependence.
+完全兼容 Android [JsBridge](https://github.com/lzyzsd/JsBridge) 和 iOS [WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge)。
 
-Full compatible with Android [JsBridge](https://github.com/lzyzsd/JsBridge) and iOS [WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge).
-
-## Usage
+## 使用
 
 ```dart
   WebView _buildWebView() {
@@ -56,21 +54,21 @@ Full compatible with Android [JsBridge](https://github.com/lzyzsd/JsBridge) and 
   }
 ```
 
-### default js implementation
+### 默认实现
 
-Default js implementation is es5 version. Using this version, web client has no need to change anything.
+默认的 js 实现为 es5 版本，使用该版本现有的 web 端实现无需做调整。
 
-### async js implementation
+### async 版本
 
-If web client is using es7, here is a **async** implementation. You just need choose es7 version to inject. Like this:
+如果 web 端正在使用 es7，那么这里也提供了一个 **async** 的实现，只需要在 `injectJs` 时选择 es7 版本即可，如下所示。
 
-dart client
+dart 端
 
 ```dart
 jsBridge.injectJs(esVersion: WebViewInjectJsVersion.es7);
 ```
 
-js client
+js 端
 
 ```js
 setupWebViewJavascriptBridge(function (bridge) {
