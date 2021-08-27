@@ -3,7 +3,6 @@ library webview_jsbridge;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -52,6 +51,7 @@ class WebViewJSBridge {
         _jsCall(jsonData);
         break;
       case 'response':
+      case 'error':
         _nativeCallResponse(jsonData);
         break;
       default:
@@ -91,13 +91,11 @@ class WebViewJSBridge {
 
   Future<T?> callHandler<T extends Object?>(String handlerName,
       {Object? data}) async {
-    final result = await _nativeCall<T>(handlerName: handlerName, data: data);
-    return result;
+    return _nativeCall<T>(handlerName: handlerName, data: data);
   }
 
   Future<T?> send<T extends Object?>(Object data) async {
-    final result = await _nativeCall<T>(data: data);
-    return result;
+    return _nativeCall<T>(data: data);
   }
 
   Future<T?> _nativeCall<T extends Object?>(
@@ -128,8 +126,7 @@ class WebViewJSBridge {
     if (jsonData['type'] == 'response') {
       completer?.complete(jsonData['data']);
     } else {
-      completer?.completeError(
-          FlutterError('native call js error for request $jsonData'));
+      completer?.completeError('native call js error for request $jsonData');
     }
   }
 
