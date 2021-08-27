@@ -1,3 +1,7 @@
+## 1.0.2
+
+* add package description
+
 ## 1.0.1
 
 * add error type when not registerHandler
