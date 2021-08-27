@@ -1,6 +1,6 @@
 name: webview_jsbridge
 description: A new Flutter package project.
-version: 1.0.0
+version: 1.0.1
 homepage: https://github.com/KouYiGuo/webview_jsbridge
 
 environment:

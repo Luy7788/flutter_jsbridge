@@ -25,8 +25,7 @@
 
         async send(data, handlerName) {
             if (!data && !handlerName) {
-                console.log('data and handlerName can not be null at the same in YGWebViewJavascriptBridge send method');
-                alert('data and handlerName can not be null at the same in YGWebViewJavascriptBridge send method');
+                console.log('YGWebViewJavascriptBridge: data and handlerName can not both be null at the same in YGWebViewJavascriptBridge send method');
                 return;
             }
 
@@ -55,7 +54,11 @@
             let index = jsonData.index;
             let callback = this.callbacks[index];
             delete this.callbacks[index];
-            callback(jsonData.data);
+            if (jsonData.type === 'response') {
+                callback(jsonData.data);
+            } else {
+                console.log('YGWebViewJavascriptBridge: js call native error for request ', JSON.stringify(jsonData));
+            }
         }
 
         _postMessage(jsonData) {
@@ -75,14 +78,26 @@
 
             if (jsonData.type === 'request') {
                 if ('handlerName' in jsonData) {
-                    let handler = this.handlers[jsonData.handlerName];
-                    let data = await handler(jsonData.data);
-                    this._nativeCallResponse(jsonData, data);
+                    let handlerName = jsonData.handlerName;
+                    if (handlerName in this.handlers) {
+                        let handler = this.handlers[jsonData.handlerName];
+                        let data = await handler(jsonData.data);
+                        this._nativeCallResponse(jsonData, data);
+                    } else {
+                        this._nativeCallError(jsonData);
+                        console.log('YGWebViewJavascriptBridge: no handler for native call ', handlerName);
+                    }
                 } else {
-                    let data = await this.defaultHandler(jsonData.data);
-                    this._nativeCallResponse(jsonData, data);
+                    if (this.defaultHandler) {
+                        let data = await this.defaultHandler(jsonData.data);
+                        this._nativeCallResponse(jsonData, data);
+                    } else {
+                        this._nativeCallError(jsonData);
+                        console.log('YGWebViewJavascriptBridge: : no handler for native send');
+                    }
+
                 }
-            } else if (jsonData.type === 'response') {
+            } else if (jsonData.type === 'response' || jsonData.type === 'error') {
                 this._jsCallResponse(jsonData);
             }
         }
@@ -90,6 +105,11 @@
         _nativeCallResponse(jsonData, response) {
             jsonData.data = response;
             jsonData.type = 'response';
+            this._postMessage(jsonData);
+        }
+
+        _nativeCallError(jsonData) {
+            jsonData.type = 'error';
             this._postMessage(jsonData);
         }
     }

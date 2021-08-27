@@ -21,22 +21,20 @@
         }
         setupWebViewJavascriptBridge(function (bridge) {
             console.log('setupWebViewJavascriptBridge done');
-            async function defaultHandler(message) {
-                console.log('defaultHandler JS got a message', message);
+            async function defaultHandler(data) {
+                console.log('defaultHandler get data ', data);
                 return new Promise(resolve => {
-                    let data = {
-                        'Javascript Responds': 'defaultHandler Wee!'
-                    };
-                    console.log('defaultHandler JS responding with', data);
-                    setTimeout(() => resolve(data), 0);
+                    let res = 'defaultHandler res from js';
+                    setTimeout(() => resolve(res), 0);
                 });
             }
 
             bridge.init(defaultHandler);
 
             async function JSEcho(data) {
-                console.log("JS Echo called with:", data);
-                return new Promise(resolve => setTimeout(() => resolve(data), 0));
+                console.log("JSEcho get data ", data);
+                let res = 'JSEcho res from js';
+                return new Promise(resolve => setTimeout(() => resolve(res), 0));
             }
 
             bridge.registerHandler('JSEcho', JSEcho);
@@ -77,18 +75,25 @@
 
         async function sendHello() {
             let responseData = await window.WebViewJavascriptBridge.send('hello');
-            console.log("repsonseData from java, data = ", responseData);
+            console.log("sendHello res ", responseData);
         }
 
-        async function callHandler() {
-            let responseData = await window.WebViewJavascriptBridge.callHandler('NativeEcho', { 'key': 'value' });
-            console.log("JS received response:", responseData);
+        async function callNativeEcho() {
+            let responseData = await window.WebViewJavascriptBridge.callHandler('NativeEcho', 'callNative from js');
+            console.log("callNativeEcho res ", responseData);
+        }
+
+        async function callNotExistHandler() {
+            let responseData = await window.WebViewJavascriptBridge.callHandler('NotExist', 'callNative from js');
+            console.log("callNotExistHandler res ", responseData);
         }
     </script>
 
     <div style="font-size: 48px;">
+        <p>webview</p>
         <button onclick="sendHello()" style="font-size: 48px;">sendHello</button>
-        <button onclick="callHandler()" style="font-size: 48px;">callHandler</button>
+        <button onclick="callNativeEcho()" style="font-size: 48px;">callNativeEcho</button>
+        <button onclick="callNotExistHandler()" style="font-size: 48px;">callNotExistHandler</button>
     </div>
 
 </body>

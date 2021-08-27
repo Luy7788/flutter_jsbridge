@@ -3,6 +3,7 @@ library webview_jsbridge;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -48,45 +49,58 @@ class WebViewJSBridge {
     final String type = jsonData['type'];
     switch (type) {
       case 'request':
-        _jsCallNative(jsonData);
+        _jsCall(jsonData);
         break;
       case 'response':
-        _callJsResponse(jsonData);
+        _nativeCallResponse(jsonData);
         break;
       default:
         break;
     }
   }
 
-  Future<void> _jsCallNative(Map<String, dynamic> jsonData) async {
-    Object? response;
+  Future<void> _jsCall(Map<String, dynamic> jsonData) async {
     if (jsonData.containsKey('handlerName')) {
       final String handlerName = jsonData['handlerName'];
-      response = await _handlers[handlerName]?.call(jsonData['data']);
+      if (_handlers.containsKey(handlerName)) {
+        final data = await _handlers[handlerName]?.call(jsonData['data']);
+        _jsCallResponse(jsonData, data);
+      } else {
+        _jsCallError(jsonData);
+      }
     } else {
-      response = await defaultHandler?.call(jsonData['data']);
+      if (defaultHandler != null) {
+        final data = await defaultHandler?.call(jsonData['data']);
+        _jsCallResponse(jsonData, data);
+      } else {
+        _jsCallError(jsonData);
+      }
     }
+  }
 
-    if (response != null) {
-      jsonData['data'] = response;
-    }
+  void _jsCallResponse(Map<String, dynamic> jsonData, Object? data) {
     jsonData['type'] = 'response';
+    jsonData['data'] = data;
+    _evaluateJavascript(jsonData);
+  }
 
+  void _jsCallError(Map<String, dynamic> jsonData) {
+    jsonData['type'] = 'error';
     _evaluateJavascript(jsonData);
   }
 
   Future<T?> callHandler<T extends Object?>(String handlerName,
       {Object? data}) async {
-    final result = await _callJs<T>(handlerName: handlerName, data: data);
+    final result = await _nativeCall<T>(handlerName: handlerName, data: data);
     return result;
   }
 
   Future<T?> send<T extends Object?>(Object data) async {
-    final result = await _callJs<T>(data: data);
+    final result = await _nativeCall<T>(data: data);
     return result;
   }
 
-  Future<T?> _callJs<T extends Object?>(
+  Future<T?> _nativeCall<T extends Object?>(
       {String? handlerName, Object? data}) async {
     final jsonData = {
       'index': _completerIndex,
@@ -107,11 +121,16 @@ class WebViewJSBridge {
     return completer.future;
   }
 
-  void _callJsResponse(Map<String, dynamic> jsonData) {
+  void _nativeCallResponse(Map<String, dynamic> jsonData) {
     final int index = jsonData['index'];
     final completer = _completers[index];
     _completers.remove(index);
-    completer?.complete(jsonData['data']);
+    if (jsonData['type'] == 'response') {
+      completer?.complete(jsonData['data']);
+    } else {
+      completer?.completeError(
+          FlutterError('native call js error for request $jsonData'));
+    }
   }
 
   void _evaluateJavascript(Map<String, dynamic> jsonData) {

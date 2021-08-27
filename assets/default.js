@@ -35,7 +35,7 @@
 
     function _send(data, callback, handlerName) {
         if (!data && !handlerName) {
-            console.log('data and handlerName can not be null at the same in YGWebViewJavascriptBridge send method');
+            console.log('WebViewJavascriptBridge: data and handlerName can not both be null at the same in WebViewJavascriptBridge send method');
             return;
         }
 
@@ -63,7 +63,11 @@
         var index = jsonData.index;
         var callback = WebViewJavascriptBridge.callbacks[index];
         delete WebViewJavascriptBridge.callbacks[index];
-        callback(jsonData.data);
+        if (jsonData.type === 'response') {
+            callback(jsonData.data);
+        } else {
+            console.log('YGWebViewJavascriptBridge: js call native error for request ', JSON.stringify(jsonData));
+        }
     }
 
     function _postMessage(jsonData) {
@@ -83,22 +87,42 @@
 
         if (jsonData.type === 'request') {
             if ('handlerName' in jsonData) {
-                var handler = WebViewJavascriptBridge.handlers[jsonData.handlerName];
-                handler(jsonData.data, (data) => _nativeCallResponse(jsonData, data));
+                var handlerName = jsonData.handlerName;
+                if (handlerName in WebViewJavascriptBridge.handlers) {
+                    var handler = WebViewJavascriptBridge.handlers[jsonData.handlerName];
+                    handler(jsonData.data, function (data) {
+                        _nativeCallResponse(jsonData, data);
+                    });
+                } else {
+                    _nativeCallError(jsonData);
+                    console.log('WebViewJavascriptBridge: no handler for native call ', handlerName);
+                }
+
             } else {
-                WebViewJavascriptBridge.defaultHandler(jsonData.data, (data) => _nativeCallResponse(jsonData, data));
+                if (WebViewJavascriptBridge.defaultHandler) {
+                    WebViewJavascriptBridge.defaultHandler(jsonData.data, function (data) {
+                        _nativeCallResponse(jsonData, data);
+                    });
+                } else {
+                    _nativeCallError(jsonData);
+                    console.log('WebViewJavascriptBridge: no handler for native send');
+                }
             }
-        } else if (jsonData.type === 'response') {
+        } else if (jsonData.type === 'response' || jsonData.type === 'error') {
             _jsCallResponse(jsonData);
         }
     }
 
-    function _nativeCallResponse(jsonData, response) {
-        jsonData.data = response;
-        jsonData.type = 'response';
+    function _nativeCallError(jsonData) {
+        jsonData.type = 'error';
         _postMessage(jsonData);
     }
 
+    function _nativeCallResponse(jsonData, response) {
+        jsonData.type = 'response';
+        jsonData.data = response;
+        _postMessage(jsonData);
+    }
 
     setTimeout(() => {
         var doc = document;

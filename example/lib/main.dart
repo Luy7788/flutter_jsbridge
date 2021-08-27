@@ -67,14 +67,6 @@ class _HomeViewState extends State<HomeView> {
       appBar: AppBar(
         title: Text(widget.title),
         actions: [
-          IconButton(
-            icon: Icon(Icons.send),
-            onPressed: () => _send(),
-          ),
-          IconButton(
-            icon: Icon(Icons.call),
-            onPressed: () => _callJs(),
-          ),
           if (widget.title == 'es5')
             TextButton(
               child: Text(
@@ -91,7 +83,38 @@ class _HomeViewState extends State<HomeView> {
         ],
       ),
       body: isListening
-          ? _buildWebView()
+          ? Row(
+              children: [
+                Expanded(
+                  child: _buildWebView(),
+                ),
+                Expanded(
+                  child: Column(
+                    children: [
+                      Text('native'),
+                      TextButton(
+                        child: Text(
+                          'sendHello',
+                        ),
+                        onPressed: () => _sendHello(),
+                      ),
+                      TextButton(
+                        child: Text(
+                          'callJSEcho',
+                        ),
+                        onPressed: () => _callJSEcho(),
+                      ),
+                      TextButton(
+                        child: Text(
+                          '_callNotExist',
+                        ),
+                        onPressed: () => _callNotExist(),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            )
           : Center(child: CircularProgressIndicator()),
     );
   }
@@ -126,24 +149,30 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Future<void> _send() async {
-    final res = await jsBridge.send('send from native');
-    print('_send res: $res');
+  Future<void> _sendHello() async {
+    final res = await jsBridge.send('hello from native');
+    print('_sendHello res: $res');
   }
 
-  Future<void> _callJs() async {
+  Future<void> _callJSEcho() async {
     final res =
         await jsBridge.callHandler('JSEcho', data: 'callJs from native');
-    print('callJs res: $res');
+    print('_callJSEcho res: $res');
+  }
+
+  Future<void> _callNotExist() async {
+    final res =
+        await jsBridge.callHandler('NotExist', data: 'callJs from native');
+    print('_callNotExist res: $res');
   }
 
   Future<Object?> _defaultHandler(Object? data) async {
     await Future.delayed(Duration(seconds: 1), () {});
-    return '_defaultHandler from native';
+    return '_defaultHandler res from native';
   }
 
   Future<Object?> _nativeEchoHandler(Object? data) async {
     await Future.delayed(Duration(seconds: 1), () {});
-    return '_nativeEchoHandler from native';
+    return '_nativeEchoHandler res from native';
   }
 }
