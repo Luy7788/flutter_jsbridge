@@ -4,19 +4,26 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 typedef Future<T?> WebViewJSBridgeHandler<T extends Object?>(Object? data);
-typedef void WebViewJSBridgeEvaluateJavascript(String javascriptString);
 
 enum WebViewInjectJsVersion { es5, es7 }
 
 class WebViewJSBridge {
-  WebViewJSBridgeEvaluateJavascript? jsHandler;
+  WebViewController? controller;
 
   final _completers = <int, Completer>{};
   var _completerIndex = 0;
   final _handlers = <String, WebViewJSBridgeHandler>{};
   WebViewJSBridgeHandler? defaultHandler;
+
+  Set<JavascriptChannel> get jsChannels => <JavascriptChannel>{
+        JavascriptChannel(
+          name: 'YGFlutterJSBridgeChannel',
+          onMessageReceived: _onMessageReceived,
+        ),
+      };
 
   Future<void> injectJs(
       {WebViewInjectJsVersion esVersion = WebViewInjectJsVersion.es5}) async {
@@ -24,7 +31,7 @@ class WebViewJSBridge {
         esVersion == WebViewInjectJsVersion.es5 ? 'default' : 'async';
     final jsPath = 'packages/webview_jsbridge/assets/$jsVersion.js';
     final jsFile = await rootBundle.loadString(jsPath);
-    jsHandler?.call(jsFile);
+    controller?.evaluateJavascript(jsFile);
   }
 
   void registerHandler(String handlerName, WebViewJSBridgeHandler handler) {
@@ -35,8 +42,8 @@ class WebViewJSBridge {
     _handlers.remove(handlerName);
   }
 
-  void onMessageReceived(String message) {
-    final decodeStr = Uri.decodeComponent(message);
+  void _onMessageReceived(JavascriptMessage message) {
+    final decodeStr = Uri.decodeFull(message.message);
     final jsonData = jsonDecode(decodeStr);
     final String type = jsonData['type'];
     switch (type) {
@@ -125,8 +132,8 @@ class WebViewJSBridge {
 
   void _evaluateJavascript(Map<String, dynamic> jsonData) {
     final jsonStr = jsonEncode(jsonData);
-    final encodeStr = Uri.encodeComponent(jsonStr);
+    final encodeStr = Uri.encodeFull(jsonStr);
     final script = 'WebViewJavascriptBridge.nativeCall("$encodeStr")';
-    jsHandler?.call(script);
+    controller?.evaluateJavascript(script);
   }
 }
