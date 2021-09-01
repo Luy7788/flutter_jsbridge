@@ -1,3 +1,6 @@
+## 1.0.3
+
+* remove webview_flutter dependence
 ## 1.0.2
 
 * add package description

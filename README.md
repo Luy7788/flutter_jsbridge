@@ -2,7 +2,7 @@
 
 [中文文档](https://github.com/KouYiGuo/webview_jsbridge/blob/main/doc/README.zh_CN.md)
 
-A flutter jsbridge package compatible with [webview_flutter](https://github.com/flutter/plugins/tree/master/packages/webview_flutter/webview_flutter), no native dependence.
+A flutter jsbridge package compatible with [webview_flutter](https://github.com/flutter/plugins/tree/master/packages/webview_flutter/webview_flutter) and [flutter_webview_plugin](https://github.com/fluttercommunity/flutter_webview_plugin), no native dependence.
 
 Full compatible with Android [JsBridge](https://github.com/lzyzsd/JsBridge) and iOS [WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge).
 

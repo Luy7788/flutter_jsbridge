@@ -1,6 +1,6 @@
 # webview_jsbridge
 
-一款与 Flutter 官方 [webview_flutter](https://github.com/flutter/plugins/tree/master/packages/webview_flutter/webview_flutter) 插件兼容的 jsbridge 插件，没有 native 依赖。
+一款与 [webview_flutter](https://github.com/flutter/plugins/tree/master/packages/webview_flutter/webview_flutter) 和 [flutter_inappwebview](https://github.com/pichillilorenzo/flutter_inappwebview) 兼容的 jsbridge 插件，没有 native 依赖。
 
 完全兼容 Android [JsBridge](https://github.com/lzyzsd/JsBridge) 和 iOS [WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge)。
 
