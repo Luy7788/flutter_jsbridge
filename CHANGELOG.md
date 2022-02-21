@@ -1,3 +1,6 @@
+## 1.0.5
+
+* update webview_flutter dependence
 ## 1.0.4
 
 * revert webview_flutter dependence
