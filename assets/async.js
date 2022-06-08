@@ -1,9 +1,9 @@
 (function () {
-    if (window.WebViewJavascriptBridge) {
+    if (window.flutterJsBridge) {
         return;
     }
 
-    class YGWebViewJavascriptBridge {
+    class FlutterWebViewJavascriptBridge {
         constructor() {
             this.handlers = {};
             this.callbacks = {};
@@ -25,7 +25,7 @@
 
         async send(data, handlerName) {
             if (!data && !handlerName) {
-                console.log('YGWebViewJavascriptBridge: data and handlerName can not both be null at the same in YGWebViewJavascriptBridge send method');
+                console.log('FlutterWebViewJavascriptBridge: data and handlerName can not both be null at the same in FlutterWebViewJavascriptBridge send method');
                 return;
             }
 
@@ -57,14 +57,14 @@
             if (jsonData.type === 'response') {
                 callback(jsonData.data);
             } else {
-                console.log('YGWebViewJavascriptBridge: js call native error for request ', JSON.stringify(jsonData));
+                console.log('FlutterWebViewJavascriptBridge: js call native error for request ', JSON.stringify(jsonData));
             }
         }
 
         _postMessage(jsonData) {
             let jsonStr = JSON.stringify(jsonData);
             let encodeStr = encodeURIComponent(jsonStr);
-            YGFlutterJSBridgeChannel.postMessage(encodeStr);
+            HXFlutterJSBridgeChannel.postMessage(encodeStr);
         }
 
         nativeCall(message) {
@@ -85,7 +85,7 @@
                         this._nativeCallResponse(jsonData, data);
                     } else {
                         this._nativeCallError(jsonData);
-                        console.log('YGWebViewJavascriptBridge: no handler for native call ', handlerName);
+                        console.log('FlutterWebViewJavascriptBridge: no handler for native call ', handlerName);
                     }
                 } else {
                     if (this.defaultHandler) {
@@ -93,7 +93,7 @@
                         this._nativeCallResponse(jsonData, data);
                     } else {
                         this._nativeCallError(jsonData);
-                        console.log('YGWebViewJavascriptBridge: : no handler for native send');
+                        console.log('FlutterWebViewJavascriptBridge: : no handler for native send');
                     }
 
                 }
@@ -114,17 +114,17 @@
         }
     }
 
-    window.WebViewJavascriptBridge = new YGWebViewJavascriptBridge();
+    window.flutterJsBridge = new FlutterWebViewJavascriptBridge();
 
     setTimeout(() => {
         let doc = document;
         let readyEvent = doc.createEvent('Events');
         let jobs = window.WVJBCallbacks || [];
-        readyEvent.initEvent('WebViewJavascriptBridgeReady');
-        readyEvent.bridge = WebViewJavascriptBridge;
+        readyEvent.initEvent('flutterJsBridgeReady');
+        readyEvent.bridge = flutterJsBridge;
         delete window.WVJBCallbacks;
         for (let job of jobs) {
-            job(WebViewJavascriptBridge);
+            job(flutterJsBridge);
         }
         doc.dispatchEvent(readyEvent);
     }, 0);

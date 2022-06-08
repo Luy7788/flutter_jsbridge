@@ -1,9 +1,9 @@
 (function () {
-    if (window.WebViewJavascriptBridge) {
+    if (window.flutterJsBridge) {
         return;
     }
 
-    window.WebViewJavascriptBridge = {
+    window.flutterJsBridge = {
         handlers: {},
         callbacks: {},
         index: 0,
@@ -18,7 +18,7 @@
 
 
     function _registerHandler(handlerName, handler) {
-        WebViewJavascriptBridge.handlers[handlerName] = handler;
+        flutterJsBridge.handlers[handlerName] = handler;
     }
 
     function _callHandler(handlerName, data, callback) {
@@ -30,16 +30,16 @@
     }
 
     function _init(callback) {
-        WebViewJavascriptBridge.defaultHandler = callback;
+        flutterJsBridge.defaultHandler = callback;
     }
 
     function _send(data, callback, handlerName) {
         if (!data && !handlerName) {
-            console.log('WebViewJavascriptBridge: data and handlerName can not both be null at the same in WebViewJavascriptBridge send method');
+            console.log('flutterJsBridge: data and handlerName can not both be null at the same in flutterJsBridge send method');
             return;
         }
 
-        var index = WebViewJavascriptBridge.index;
+        var index = flutterJsBridge.index;
 
         var message = {
             index: index,
@@ -52,8 +52,8 @@
             message.handlerName = handlerName;
         }
 
-        WebViewJavascriptBridge.callbacks[index] = callback;
-        WebViewJavascriptBridge.index += 1;
+        flutterJsBridge.callbacks[index] = callback;
+        flutterJsBridge.index += 1;
 
         _postMessage(message, callback);
     }
@@ -61,19 +61,19 @@
 
     function _jsCallResponse(jsonData) {
         var index = jsonData.index;
-        var callback = WebViewJavascriptBridge.callbacks[index];
-        delete WebViewJavascriptBridge.callbacks[index];
+        var callback = flutterJsBridge.callbacks[index];
+        delete flutterJsBridge.callbacks[index];
         if (jsonData.type === 'response') {
             callback(jsonData.data);
         } else {
-            console.log('YGWebViewJavascriptBridge: js call native error for request ', JSON.stringify(jsonData));
+            console.log('HXWebViewJavascriptBridge: js call native error for request ', JSON.stringify(jsonData));
         }
     }
 
     function _postMessage(jsonData) {
         var jsonStr = JSON.stringify(jsonData);
         var encodeStr = encodeURIComponent(jsonStr);
-        YGFlutterJSBridgeChannel.postMessage(encodeStr);
+        HXFlutterJSBridgeChannel.postMessage(encodeStr);
     }
 
     function _nativeCall(message) {
@@ -88,24 +88,24 @@
         if (jsonData.type === 'request') {
             if ('handlerName' in jsonData) {
                 var handlerName = jsonData.handlerName;
-                if (handlerName in WebViewJavascriptBridge.handlers) {
-                    var handler = WebViewJavascriptBridge.handlers[jsonData.handlerName];
+                if (handlerName in flutterJsBridge.handlers) {
+                    var handler = flutterJsBridge.handlers[jsonData.handlerName];
                     handler(jsonData.data, function (data) {
                         _nativeCallResponse(jsonData, data);
                     });
                 } else {
                     _nativeCallError(jsonData);
-                    console.log('WebViewJavascriptBridge: no handler for native call ', handlerName);
+                    console.log('flutterJsBridge: no handler for native call ', handlerName);
                 }
 
             } else {
-                if (WebViewJavascriptBridge.defaultHandler) {
-                    WebViewJavascriptBridge.defaultHandler(jsonData.data, function (data) {
+                if (flutterJsBridge.defaultHandler) {
+                    flutterJsBridge.defaultHandler(jsonData.data, function (data) {
                         _nativeCallResponse(jsonData, data);
                     });
                 } else {
                     _nativeCallError(jsonData);
-                    console.log('WebViewJavascriptBridge: no handler for native send');
+                    console.log('flutterJsBridge: no handler for native send');
                 }
             }
         } else if (jsonData.type === 'response' || jsonData.type === 'error') {
@@ -128,12 +128,12 @@
         var doc = document;
         var readyEvent = doc.createEvent('Events');
         var jobs = window.WVJBCallbacks || [];
-        readyEvent.initEvent('WebViewJavascriptBridgeReady');
-        readyEvent.bridge = WebViewJavascriptBridge;
+        readyEvent.initEvent('flutterJsBridgeReady');
+        readyEvent.bridge = flutterJsBridge;
         delete window.WVJBCallbacks;
         for (var i = 0; i < jobs.length; i++) {
             var job = jobs[i];
-            job(WebViewJavascriptBridge);
+            job(flutterJsBridge);
         }
         doc.dispatchEvent(readyEvent);
     }, 0);

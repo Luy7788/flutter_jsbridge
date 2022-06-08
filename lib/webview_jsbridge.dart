@@ -3,6 +3,7 @@ library webview_jsbridge;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -20,18 +21,17 @@ class WebViewJSBridge {
 
   Set<JavascriptChannel> get jsChannels => <JavascriptChannel>{
         JavascriptChannel(
-          name: 'YGFlutterJSBridgeChannel',
+          name: 'HXFlutterJSBridgeChannel',
           onMessageReceived: _onMessageReceived,
         ),
       };
 
-  Future<void> injectJs(
-      {WebViewInjectJsVersion esVersion = WebViewInjectJsVersion.es5}) async {
-    final jsVersion =
-        esVersion == WebViewInjectJsVersion.es5 ? 'default' : 'async';
+  Future<void> injectJs({WebViewInjectJsVersion esVersion = WebViewInjectJsVersion.es5}) async {
+    final jsVersion = esVersion == WebViewInjectJsVersion.es5 ? 'default' : 'async';
     final jsPath = 'packages/webview_jsbridge/assets/$jsVersion.js';
     final jsFile = await rootBundle.loadString(jsPath);
     controller?.evaluateJavascript(jsFile);
+    debugPrint('JsBridge初始化方法 injectJs');
   }
 
   void registerHandler(String handlerName, WebViewJSBridgeHandler handler) {
@@ -133,7 +133,15 @@ class WebViewJSBridge {
   void _evaluateJavascript(Map<String, dynamic> jsonData) {
     final jsonStr = jsonEncode(jsonData);
     final encodeStr = Uri.encodeFull(jsonStr);
-    final script = 'WebViewJavascriptBridge.nativeCall("$encodeStr")';
+    final script = 'flutterJsBridge.nativeCall("$encodeStr")';
     controller?.evaluateJavascript(script);
+  }
+
+  //检查flutterJsBridge方法
+  Future<bool> checkJsBridge() async {
+    final script = '(function () { if(window.flutterJsBridge == null) {return false;} else {return true;} })();';
+    var result = await controller?.evaluateJavascript(script);
+    // debugPrint('checkJsBridge 是否初始化 $result: ${result == "true" || result == "1"}');
+    return (result == "true" || result == "1") ? true : false;
   }
 }

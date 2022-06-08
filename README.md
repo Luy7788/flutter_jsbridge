@@ -1,7 +1,3 @@
-# **!!!DEPRECATED!!!**
-My google account has been banned by Google Play Console since I'm not active enough last year. So this repo has been deprecated. All update will move to [webview_jsbridge_x](https://pub.dev/packages/webview_jsbridge_x).
-
-Sorry, guys.
 # webview_jsbridge
 
 [中文文档](https://github.com/KouYiGuo/webview_jsbridge/blob/main/doc/README.zh_CN.md)
