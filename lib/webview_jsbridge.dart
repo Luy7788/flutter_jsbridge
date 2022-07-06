@@ -5,14 +5,14 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 typedef Future<T?> WebViewJSBridgeHandler<T extends Object?>(Object? data);
 
 enum WebViewInjectJsVersion { es5, es7 }
 
 class WebViewJSBridge {
-  WebViewController? controller;
+  InAppWebViewController? controller;
 
   final _completers = <int, Completer>{};
   var _completerIndex = 0;
